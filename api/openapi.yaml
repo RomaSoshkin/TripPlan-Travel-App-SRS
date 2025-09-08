@@ -1,0 +1,317 @@
+openapi: 3.0.1
+info:
+  title: Trip Plan API
+  description: API для мобильного приложения планирования путешествий по России
+  version: 1.0.0
+servers:
+  - url: https://api.tripplan.ru/v1
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Аутентификация пользователей
+  - name: Trips
+    description: Управление путешествиями
+  - name: Finance
+    description: Учет расходов
+  - name: Documents
+    description: Работа с документами
+
+paths:
+  # ================== Аутентификация ==================
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Регистрация по email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: |
+            Неверный запрос:
+            - Пароль короче 6 символов
+            - Невалидный email
+            - Пользователь уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Вход через соцсети или email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Не указаны обязательные поля
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+  # ================== Путешествия ==================
+  /trips:
+    get:
+      tags: [Trips]
+      summary: Список путешествий пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TripShortResponse'
+        '401':
+          description: Неавторизованный доступ
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+    post:
+      tags: [Trips]
+      summary: Создать новое путешествие
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTripRequest'
+      responses:
+        '201':
+          description: Путешествие создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripFullResponse'
+        '400':
+          description: |
+            Ошибки валидации:
+            - Указано больше 10 городов
+            - Дата начала позже даты окончания
+            - Пустой заголовок
+            - Неверный формат даты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неавторизованный доступ
+        '429':
+          description: Слишком много запросов (лимит 100/мин)
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+  /trips/{tripId}:
+    get:
+      tags: [Trips]
+      summary: Получить детали путешествия
+      parameters:
+        - $ref: '#/components/parameters/tripId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripFullResponse'
+        '401':
+          description: Неавторизованный доступ
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Путешествие не найдено
+        '410':
+          description: Путешествие удалено
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+  # ================== Финансы ==================
+  /trips/{tripId}/expenses:
+    post:
+      tags: [Finance]
+      summary: Добавить расход
+      parameters:
+        - $ref: '#/components/parameters/tripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExpenseRequest'
+      responses:
+        '201':
+          description: Расход добавлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseResponse'
+        '400':
+          description: |
+            Ошибки:
+            - Сумма расхода ≤ 0
+            - Несуществующая категория
+            - Дата расхода вне периода поездки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Путешествие не найдено
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+  # ================== Документы ==================
+  /trips/{tripId}/documents:
+    post:
+      tags: [Documents]
+      summary: Загрузить документ
+      parameters:
+        - $ref: '#/components/parameters/tripId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadDocumentRequest'
+      responses:
+        '201':
+          description: Документ загружен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '400':
+          description: |
+            Ошибки загрузки:
+            - Файл > 5 МБ
+            - Неподдерживаемый формат (не PDF/JPG/PNG)
+            - Отсутствует файл
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Путешествие не найдено
+        '507':
+          description: Недостаточно места на сервере
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    tripId:
+      name: tripId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # Auth
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@mail.com
+        password:
+          type: string
+          minLength: 6
+          example: Pass123!
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        socialToken:
+          type: string
+          description: Токен от VK/Яндекс/Telegram
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
