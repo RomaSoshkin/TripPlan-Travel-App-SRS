@@ -22,3 +22,6 @@ Trip Plan — это мобильный помощник для самостоя
 *   **Диаграммы:** Draw.io / PlantUML
 *   **API спецификация:** OpenAPI 3.0 (Swagger)
 *   **Прототипы:** Draw.io
+
+## Описание программного интерфейса
+[![Swagger Validator](https://validator.swagger.io/validator?url=https://raw.githubusercontent.com/RomaSoshkin/TripPlan-Travel-App-SRS/main/api/openapi.yaml)](https://validator.swagger.io/validator/debug?url=https://raw.githubusercontent.com/RomaSoshkin/TripPlan-Travel-App-SRS/main/api/openapi.yaml)
