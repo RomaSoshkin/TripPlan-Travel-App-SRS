@@ -425,11 +425,11 @@ components:
         startDate:
           type: string
           format: date
-          example: "2024-06-01"
+          example: "2025-06-01"
         endDate:
           type: string
           format: date
-          example: "2024-06-07"
+          example: "2025-06-07"
         description:
           type: string
           example: "Поездка по древним городам России"
@@ -452,11 +452,11 @@ components:
         startDate:
           type: string
           format: date
-          example: "2024-06-01"
+          example: "2025-06-01"
         endDate:
           type: string
           format: date
-          example: "2024-06-07"
+          example: "2025-06-07"
         progress:
           type: integer
           minimum: 0
@@ -478,11 +478,11 @@ components:
             createdAt:
               type: string
               format: date-time
-              example: "2024-05-15T10:30:00Z"
+              example: "2025-05-15T10:30:00Z"
             updatedAt:
               type: string
               format: date-time
-              example: "2024-05-20T15:45:00Z"
+              example: "2025-05-20T15:45:00Z"
 
     # Finance
     CreateExpenseRequest:
@@ -526,7 +526,7 @@ components:
         date:
           type: string
           format: date
-          example: "2024-06-01"
+          example: "2025-06-01"
         description:
           type: string
           example: "Билеты на поезд Москва-Сергиев Посад"
@@ -536,7 +536,7 @@ components:
         createdAt:
           type: string
           format: date-time
-          example: "2024-05-16T14:20:00Z"
+          example: "2025-05-16T14:20:00Z"
 
     # Documents
     Document:
@@ -564,7 +564,7 @@ components:
         uploadedAt:
           type: string
           format: date-time
-          example: "2024-05-17T09:15:00Z"
+          example: "2025-05-17T09:15:00Z"
 
     # Common
     Error:
