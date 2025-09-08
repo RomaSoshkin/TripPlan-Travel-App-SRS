@@ -45,13 +45,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
         '500':
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/Error'
 
   /auth/login:
     post:
@@ -75,21 +75,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
         '401':
           description: Неверные учетные данные
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
         '404':
           description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/Error'
 
   # ================== Путешествия ==================
   /trips:
@@ -106,15 +110,19 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TripShortResponse'
+                  $ref: '#/components/schemas/TripShort'
         '401':
           description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/Error'
 
     post:
       tags: [Trips]
@@ -133,7 +141,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TripFullResponse'
+                $ref: '#/components/schemas/TripFull'
         '400':
           description: |
             Ошибки валидации:
@@ -144,22 +152,32 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
         '401':
           description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '429':
           description: Слишком много запросов (лимит 100/мин)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/Error'
 
   /trips/{tripId}:
     get:
       tags: [Trips]
       summary: Получить детали путешествия
+      security:
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/tripId'
       responses:
@@ -168,27 +186,45 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TripFullResponse'
+                $ref: '#/components/schemas/TripFull'
         '401':
           description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Доступ запрещен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Путешествие не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '410':
           description: Путешествие удалено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/Error'
 
   # ================== Финансы ==================
   /trips/{tripId}/expenses:
     post:
       tags: [Finance]
       summary: Добавить расход
+      security:
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/tripId'
       requestBody:
@@ -203,7 +239,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ExpenseResponse'
+                $ref: '#/components/schemas/Expense'
         '400':
           description: |
             Ошибки:
@@ -213,23 +249,33 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
         '401':
           description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Путешествие не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/Error'
 
   # ================== Документы ==================
   /trips/{tripId}/documents:
     post:
       tags: [Documents]
       summary: Загрузить документ
+      security:
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/tripId'
       requestBody:
@@ -237,14 +283,24 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UploadDocumentRequest'
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Файл документа (PDF, JPG, PNG, JPEG)
+                description:
+                  type: string
+                  description: Описание документа
+              required:
+                - file
       responses:
         '201':
           description: Документ загружен
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentResponse'
+                $ref: '#/components/schemas/Document'
         '400':
           description: |
             Ошибки загрузки:
@@ -254,19 +310,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
         '401':
           description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Путешествие не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '507':
           description: Недостаточно места на сервере
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/Error'
 
 components:
   securitySchemes:
@@ -283,6 +351,7 @@ components:
       schema:
         type: string
         format: uuid
+        example: "f3b2a1d0-e5c4-4b3a-2f1e-0d9c8b7a6f5e"
 
   schemas:
     # Auth
@@ -305,13 +374,208 @@ components:
         email:
           type: string
           format: email
+          example: user@mail.com
         password:
           type: string
+          example: Pass123!
         socialToken:
           type: string
           description: Токен от VK/Яндекс/Telegram
+          example: "vk1.a.1234567890"
 
     AuthResponse:
       type: object
       properties:
         token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        email:
+          type: string
+          format: email
+          example: user@mail.com
+        name:
+          type: string
+          example: Иван Иванов
+
+    # Trips
+    CreateTripRequest:
+      type: object
+      required: [title, cities, startDate, endDate]
+      properties:
+        title:
+          type: string
+          example: "Путешествие по Золотому кольцу"
+        cities:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 10
+          example: ["Москва", "Сергиев Посад", "Переславль-Залесский"]
+        startDate:
+          type: string
+          format: date
+          example: "2024-06-01"
+        endDate:
+          type: string
+          format: date
+          example: "2024-06-07"
+        description:
+          type: string
+          example: "Поездка по древним городам России"
+
+    TripShort:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f3b2a1d0-e5c4-4b3a-2f1e-0d9c8b7a6f5e"
+        title:
+          type: string
+          example: "Путешествие по Золотому кольцу"
+        cities:
+          type: array
+          items:
+            type: string
+          example: ["Москва", "Сергиев Посад"]
+        startDate:
+          type: string
+          format: date
+          example: "2024-06-01"
+        endDate:
+          type: string
+          format: date
+          example: "2024-06-07"
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 45
+
+    TripFull:
+      allOf:
+        - $ref: '#/components/schemas/TripShort'
+        - type: object
+          properties:
+            description:
+              type: string
+              example: "Поездка по древним городам России"
+            totalExpenses:
+              type: number
+              format: float
+              example: 35400.50
+            createdAt:
+              type: string
+              format: date-time
+              example: "2024-05-15T10:30:00Z"
+            updatedAt:
+              type: string
+              format: date-time
+              example: "2024-05-20T15:45:00Z"
+
+    # Finance
+    CreateExpenseRequest:
+      type: object
+      required: [amount, category, date]
+      properties:
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+          example: 1500.75
+        category:
+          type: string
+          example: "transport"
+        date:
+          type: string
+          format: date
+          example: "2024-06-01"
+        description:
+          type: string
+          example: "Билеты на поезд Москва-Сергиев Посад"
+        currency:
+          type: string
+          default: "RUB"
+          example: "RUB"
+
+    Expense:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "e4d3c2b1-a5b6-4c3d-2e1f-0a9b8c7d6e5f"
+        amount:
+          type: number
+          format: float
+          example: 1500.75
+        category:
+          type: string
+          example: "transport"
+        date:
+          type: string
+          format: date
+          example: "2024-06-01"
+        description:
+          type: string
+          example: "Билеты на поезд Москва-Сергиев Посад"
+        currency:
+          type: string
+          example: "RUB"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-05-16T14:20:00Z"
+
+    # Documents
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "d5e6f7a8-b9c0-1d2e-3f4a-5b6c7d8e9f0a"
+        filename:
+          type: string
+          example: "train_tickets.pdf"
+        originalName:
+          type: string
+          example: "билеты_поезд.pdf"
+        size:
+          type: integer
+          example: 2457600
+        mimeType:
+          type: string
+          example: "application/pdf"
+        description:
+          type: string
+          example: "Билеты на поезд Москва-Сергиев Посад"
+        uploadedAt:
+          type: string
+          format: date-time
+          example: "2024-05-17T09:15:00Z"
+
+    # Common
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "validation_error"
+        message:
+          type: string
+          example: "Неверный формат email"
+        details:
+          type: object
+          example: {"field": "email", "value": "invalid-email"}
